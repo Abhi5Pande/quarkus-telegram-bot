@@ -21,18 +21,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'graalvm'
-          graalvm-version: '22.3.0' # Adjust the version as needed
-          java-version: '17' # or 11
-
-      - name: Install Maven
-        uses: actions/setup-maven@v3
-        with:
-          maven-version: '3.8.4'
-
       - name: Build Quarkus Project
         run: mvn package -Dnative -DskipTests
 
