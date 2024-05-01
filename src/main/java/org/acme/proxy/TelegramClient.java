@@ -6,7 +6,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.acme.proxy.dto.SendMessageDTO;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 
 @RegisterRestClient(configKey="telegram-api")
