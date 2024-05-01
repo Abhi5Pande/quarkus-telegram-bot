@@ -6,45 +6,56 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI with Maven
+name: Quarkus Native Deployment
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-     
-      - uses: graalvm/setup-graalvm@v1
+
+      - name: Set Up GraalVM
+        uses: graalvm/setup-graalvm@v1
         with:
           java-version: '17'
           distribution: 'graalvm'
-          github-token: AQFFEW7T2QHGEBYJF4VSEO3GGIHIU
 
-      - name: Build Quarkus Project
-        run: mvn package -Dnative -DskipTests
+      - name: Build Quarkus Native
+        run: mvn clean package -Pnative -DskipTests
 
-      - name: Archive Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: quarkus-native
-          path: target/*-runner # Adjust to the native image location
-  
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: quarkus-native
-      - name: Start Quarkus Native as Systemd Service
+      - name: Move Native Image
         run: |
-          ./telegram-bot-1.0.0-SNAPSHOT-runner
+          sudo mkdir -p /opt/quarkus
+          sudo mv target/*-runner /opt/quarkus/
+
+      - name: Configure Systemd
+        run: |
+          sudo tee /etc/systemd/system/quarkus-native.service > /dev/null <<EOT
+          [Unit]
+          Description=Quarkus Native Service
+          After=network.target
+
+          [Service]
+          ExecStart=/opt/quarkus/*-runner
+          Restart=always
+          User=$USER
+          Group=$USER
+
+          [Install]
+          WantedBy=multi-user.target
+          EOT
+
+          sudo systemctl daemon-reload
+
+      - name: Start Quarkus Service
+        run: |
+          sudo systemctl enable quarkus-native
+          sudo systemctl start quarkus-native
   
