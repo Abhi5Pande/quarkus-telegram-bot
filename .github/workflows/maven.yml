@@ -35,3 +35,21 @@ jobs:
         with:
           name: quarkus-native
           path: target/*-runner # Adjust to the native image location
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: quarkus-native
+
+      - name: Copy Artifact to Remote Server
+        run: |
+          sudo mv target/telegram-bot-1.0.0-SNAPSHOT-runner .
+
+      - name: Start Quarkus Native as Systemd Service
+        run: |
+          ./telegram-bot-1.0.0-SNAPSHOT-runner
+  
